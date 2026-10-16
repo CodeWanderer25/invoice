@@ -2,16 +2,16 @@
 @import "tailwindcss";
 
 @theme {
--- font-display: "Urbanist", sans-serif;
--- breakpoint-3xl: 1920px;
--- color-primary: #FF9324;
+  --font-display: "Urbanist", sans-serif;
+  --breakpoint-3xl: 1920px;
+  --color-primary: #FF9324;
 }  
 
 @layer base{
-html {
-font-family: var( -- font-display);
-}
-body {
-background-color: #fcfbfc;
-}
+  html {
+    font-family: var(--font-display);
+  }
+  body {
+    background-color: #fcfbfc;
+  }
 }

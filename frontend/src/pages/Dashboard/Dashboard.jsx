@@ -126,41 +126,45 @@ const Dashboard = () => {
         </h2>
 
         <div className="space-y-3">
-          {recentInvoices.map((inv) => (
-            <div
-              key={inv._id}
-              className="flex justify-between items-center p-4 border rounded-lg shadow-sm hover:shadow-md transition"
-            >
-              {/* Left side */}
-              <div>
-                <p className="font-semibold text-slate-700">
-                  Invoice #{inv.invoiceNumber}
-                </p>
-                <p className="text-sm text-slate-500">{inv.clientName}</p>
-              </div>
+          {recentInvoices.length === 0 ? (
+            <p className="text-sm text-slate-500 py-4 text-center">No recent invoices found.</p>
+          ) : (
+            recentInvoices.map((inv) => (
+              <div
+                key={inv._id}
+                className="flex justify-between items-center p-4 border rounded-lg shadow-sm hover:shadow-md transition"
+              >
+                {/* Left side */}
+                <div>
+                  <p className="font-semibold text-slate-700">
+                    Invoice #{inv.invoiceNumber}
+                  </p>
+                  <p className="text-sm text-slate-500">{inv.billTo?.clientName || "N/A"}</p>
+                </div>
 
-              {/* Middle */}
-              <div className="text-right">
-                <p className="font-bold text-slate-800">
-                  ₹{inv.total.toFixed(2)}
-                </p>
-                <span
-                  className={`px-2 py-1 rounded text-xs font-medium ${
-                    inv.status === "Paid"
-                      ? "bg-emerald-100 text-emerald-600"
-                      : "bg-red-100 text-red-600"
-                  }`}
-                >
-                  {inv.status}
-                </span>
-              </div>
+                {/* Middle */}
+                <div className="text-right">
+                  <p className="font-bold text-slate-800">
+                    ₹{(inv.total || 0).toFixed(2)}
+                  </p>
+                  <span
+                    className={`px-2 py-1 rounded text-xs font-medium ${
+                      (inv.status || "").toLowerCase() === "paid"
+                        ? "bg-emerald-100 text-emerald-600"
+                        : "bg-red-100 text-red-600"
+                    }`}
+                  >
+                    {inv.status || "UnPaid"}
+                  </span>
+                </div>
 
-              {/* Right side */}
-              <div className="text-sm text-slate-400">
-                {new Date(inv.createdAt).toLocaleDateString()}
+                {/* Right side */}
+                <div className="text-sm text-slate-400">
+                  {new Date(inv.createdAt || inv.invoiceDate || Date.now()).toLocaleDateString()}
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </div>

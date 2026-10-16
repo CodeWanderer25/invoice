@@ -18,7 +18,7 @@ const [formData, setFormData] = useState({
 useEffect(() => {
   if (user) {
     setFormData({
-      name: user.name || '',
+      name: user.name || user.username || '',
       businessName: user.businessName || '',
       address: user.address || '',
       phone: user.phone || ''
@@ -36,7 +36,11 @@ const handleUpdateProfile = async (e) => {
   setIsUpdating(true);
   
   try {
-    const response = await axiosInstance.put(API_ROUTES.AUTH.UPDATE_PROFILE, formData);
+    const payload = {
+      ...formData,
+      username: formData.name,
+    };
+    const response = await axiosInstance.put(API_ROUTES.AUTH.UPDATE_PROFILE, payload);
     updateProfile(response.data);
     toast.success('Profile updated successfully!');
   } catch (error) {
@@ -49,7 +53,11 @@ const handleUpdateProfile = async (e) => {
 
 
 if(loading){
-  <Loader2/>
+  return (
+    <div className="flex justify-center items-center min-h-[50vh]">
+      <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+    </div>
+  );
 }
 
   return (

@@ -66,7 +66,14 @@ billFrom: {
           phone: dataAI.phone || "",
           address: dataAI.address || "",
         },
-        items: dataAI.items?.length ? dataAI.items : prev.items,
+        items: dataAI.items?.length
+          ? dataAI.items.map((it) => ({
+              name: it.name || "",
+              quantity: Number(it.quantity) || 1,
+              unitPrice: Number(it.unitPrice) || 0,
+              taxPercent: Number(it.taxPercent) || 0,
+            }))
+          : prev.items,
         notes: dataAI.notes || "",
         paymentTerms: dataAI.paymentTerms || "Net 7",
       }));

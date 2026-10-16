@@ -13,7 +13,10 @@ expiresIn: "7d",
 
 exports.registerUser = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const username = req.body.username || req.body.name;
+    const name = req.body.name || req.body.username;
+    const email = req.body.email;
+    const password = req.body.password;
 
     if (!username || !email || !password) {
       return res.status(400).json({ message: "Please fill all fields" });
@@ -28,6 +31,7 @@ exports.registerUser = async (req, res) => {
 
     const user = await User.create({
       username,
+      name,
       email: email.toLowerCase(),
       password: hashedPassword
     });
@@ -35,6 +39,7 @@ exports.registerUser = async (req, res) => {
     res.status(201).json({
       _id: user._id,
       username: user.username,
+      name: user.name,
       email: user.email,
       token: generateToken(user._id),
     });
@@ -72,7 +77,8 @@ exports.loginUser = async (req, res) => {
     // 4️ Success response
     res.json({
       _id: user._id,
-      username: user.username,
+      username: user.username || user.name || "",
+      name: user.name || user.username || "",
       email: user.email,
       token: generateToken(user._id),
     });
@@ -94,17 +100,22 @@ exports.updateUserProfile = async (req, res) => {
     }
 
     // Update only if value is sent
-    user.username = req.body.username || user.username;
+    const newName = req.body.username || req.body.name;
+    if (newName) {
+      user.username = newName;
+      user.name = newName;
+    }
     user.email = req.body.email || user.email;
-    user.businessName = req.body.businessName || user.businessName;
-    user.address = req.body.address || user.address;
-    user.phone = req.body.phone || user.phone;
+    user.businessName = req.body.businessName !== undefined ? req.body.businessName : user.businessName;
+    user.address = req.body.address !== undefined ? req.body.address : user.address;
+    user.phone = req.body.phone !== undefined ? req.body.phone : user.phone;
 
     const updatedUser = await user.save();
 
     res.json({
       _id: updatedUser._id,
-      username: updatedUser.username,
+      username: updatedUser.username || updatedUser.name || "",
+      name: updatedUser.name || updatedUser.username || "",
       email: updatedUser.email,
       businessName: updatedUser.businessName || "",
       address: updatedUser.address || "",
@@ -125,17 +136,18 @@ exports.getMe = async (req, res) => {
             }
             res.json({
                 _id: user._id,
-                username: user.username,
+                username: user.username || user.name || '',
+                name: user.name || user.username || '',
                 email: user.email,
                 businessName: user.businessName || '',
                 address: user.address || '',
                 phone: user.phone || ''
-            })
+            });
             
         } catch (error) {
             res.status(500).json({ message: "Server Error" });
         }
-}
+};
 
 
 

@@ -11,10 +11,29 @@ const app = express();
 
 
 
+const fs = require("fs");
+
+const allowedOrigins = [
+  "https://invoiceai-lzko.onrender.com",
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "http://127.0.0.1:5173",
+];
+if (process.env.CLIENT_URL) {
+  allowedOrigins.push(process.env.CLIENT_URL);
+}
+
 // Middleware to handle CORS
 app.use(
   cors({
-    origin: "https://invoiceai-lzko.onrender.com",
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like curl, postman, mobile apps)
+      if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== "production") {
+        return callback(null, true);
+      }
+      return callback(null, true);
+    },
+    credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
@@ -28,20 +47,19 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes Here
-app.use("/api/auth",authRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api/invoice", authInvoice);
 app.use("/api/genai", authGenAI);
 
-// Serve frontend build
-app.use(
-  express.static(path.join(__dirname, "..", "frontend", "dist"))
-);
-
-app.use((req, res) => {
-  res.sendFile(
-    path.join(__dirname, "..", "frontend", "dist", "index.html")
-  );
-});
+// Serve frontend build if dist folder exists
+const frontendDist = path.join(__dirname, "..", "frontend", "dist");
+if (fs.existsSync(frontendDist)) {
+  app.use(express.static(frontendDist));
+  app.get("/{*splat}", (req, res, next) => {
+    if (req.path.startsWith("/api")) return next();
+    res.sendFile(path.join(frontendDist, "index.html"));
+  });
+}
 
 
 

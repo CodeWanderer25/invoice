@@ -33,12 +33,14 @@ const invoiceSchema = new mongoose.Schema({
         businessName: String,
         email:String,
         address: String,
+        phone: String,
         phoneNumber: String
     },
     billTo:{
         clientName: String,
         email:String,
         address: String,
+        phone: String,
         phoneNumber: String
 
     },
@@ -52,7 +54,7 @@ const invoiceSchema = new mongoose.Schema({
     },
     status:{
         type:String,
-        enum:["Paid" , "UnPaid"],
+        enum:["Paid", "UnPaid", "paid", "unpaid", "Pending", "pending"],
         default: "UnPaid"
     },
     subTotal:Number,

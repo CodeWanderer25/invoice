@@ -76,12 +76,12 @@ if (!invoice) {
         <p className="text-gray-600 mb-8 leading-relaxed max-w-sm mx-auto">
           The invoice you are looking for does not exist or could not be loaded.
         </p>
-        <Button 
+        <button 
           onClick={() => navigate('/invoices')}
           className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-8 rounded-2xl shadow-lg hover:shadow-xl transition-all"
         >
           Back to All Invoices
-        </Button>
+        </button>
       </div>
     </div>
   );
@@ -92,7 +92,7 @@ if(isEditing){
 }
 
   const handleBack = () => {
-    alert('Navigate back to invoices list');
+    navigate('/invoices');
   };
 
 
@@ -100,14 +100,14 @@ if(isEditing){
     window.print();
   };
 
-    const getStatusColor = (status) => {
+  const getStatusColor = (status) => {
+    const norm = (status || "").toLowerCase();
     const colors = {
       paid: 'bg-green-100 text-green-700 border-green-200',
       pending: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-      unPaid: 'bg-red-100 text-red-700 border-red-200',
-
+      unpaid: 'bg-red-100 text-red-700 border-red-200',
     };
-    return colors[status] || colors.draft;
+    return colors[norm] || 'bg-gray-100 text-gray-700 border-gray-200';
   };
 
 return (
@@ -172,20 +172,20 @@ return (
             <div>
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">From</h3>
               <div className="space-y-1">
-                <p className="font-bold text-lg text-gray-900">{invoice.billFrom.businessName}</p>
-                <p className="text-gray-600">{invoice.billFrom.address}</p>
-                <p className="text-gray-600">{invoice.billFrom.email}</p>
-                <p className="text-gray-600">{invoice.billFrom.phone}</p>
+                <p className="font-bold text-lg text-gray-900">{invoice.billFrom?.businessName}</p>
+                <p className="text-gray-600">{invoice.billFrom?.address}</p>
+                <p className="text-gray-600">{invoice.billFrom?.email}</p>
+                <p className="text-gray-600">{invoice.billFrom?.phone || invoice.billFrom?.phoneNumber}</p>
               </div>
             </div>
             
             <div className='pl-[40%] sm:text-right'>
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Bill To</h3>
               <div className="space-y-1">
-                <p className="font-bold text-lg text-gray-900">{invoice.billTo.clientName}</p>
-                <p className="text-gray-600">{invoice.billTo.address}</p>
-                <p className="text-gray-600">{invoice.billTo.email}</p>
-                <p className="text-gray-600">{invoice.billTo.phone}</p>
+                <p className="font-bold text-lg text-gray-900">{invoice.billTo?.clientName}</p>
+                <p className="text-gray-600">{invoice.billTo?.address}</p>
+                <p className="text-gray-600">{invoice.billTo?.email}</p>
+                <p className="text-gray-600">{invoice.billTo?.phone || invoice.billTo?.phoneNumber}</p>
               </div>
             </div>
           </div>
@@ -194,15 +194,15 @@ return (
           <div className="px-8 sm:px-12 pb-8 grid grid-cols-2 sm:grid-cols-3 gap-[25%]">
             <div>
               <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">Issue Date</p>
-              <p className="text-gray-900 font-medium">{new Date(invoice.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+              <p className="text-gray-900 font-medium">{new Date(invoice.invoiceDate || invoice.createdAt || Date.now()).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
             </div>
             <div className='sm: text-center'>
               <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">Due Date</p>
-              <p className="text-gray-900 font-medium">{new Date(invoice.dueDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+              <p className="text-gray-900 font-medium">{invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'}</p>
             </div>
             <div className='sm:text-right'>
               <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-1">Amount Due</p>
-              <p className="text-gray-900 font-bold text-lg">{invoice.paymentTerms}</p>
+              <p className="text-gray-900 font-bold text-lg">${(invoice.total || 0).toFixed(2)}</p>
             </div>
           </div>
 
@@ -219,12 +219,12 @@ return (
                   </tr>
                 </thead>
                 <tbody>
-                  {invoice.items.map((item, index) => (
+                  {(invoice.items || []).map((item, index) => (
                     <tr key={index} className="border-b border-gray-200">
                       <td className="py-4 text-gray-900">{item.name}</td>
                       <td className="py-4 text-right text-gray-700">{item.quantity}</td>
-                      <td className="py-4 text-right text-gray-700">${item.taxPercent}</td>
-                      <td className="py-4 text-right text-gray-900 font-medium">${item.total}</td>
+                      <td className="py-4 text-right text-gray-700">${item.unitPrice}</td>
+                      <td className="py-4 text-right text-gray-900 font-medium">${(item.total || 0).toFixed ? item.total.toFixed(2) : item.total}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -238,15 +238,15 @@ return (
               <div className="w-full sm:w-80 space-y-3">
                 <div className="flex justify-between py-2 border-b border-gray-200">
                   <span className="text-gray-600 font-medium">Subtotal</span>
-                  <span className="text-gray-900 font-medium">${invoice.subTotal}</span>
+                  <span className="text-gray-900 font-medium">${(invoice.subTotal || 0).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-gray-200">
-                  <span className="text-gray-600 font-medium">Tax (%)</span>
-                  <span className="text-gray-900 font-medium">${invoice.taxTotal}</span>
+                  <span className="text-gray-600 font-medium">Tax</span>
+                  <span className="text-gray-900 font-medium">${(invoice.taxTotal || 0).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between py-3 bg-gray-50 px-4 rounded-lg">
                   <span className="text-gray-900 font-bold text-lg">Total</span>
-                  <span className="text-gray-900 font-bold text-lg">${invoice.total}</span>
+                  <span className="text-gray-900 font-bold text-lg">${(invoice.total || 0).toFixed(2)}</span>
                 </div>
               </div>
             </div>

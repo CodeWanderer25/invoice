@@ -1,4 +1,6 @@
-export const BASE_URL = "https://invoiceai-lzko.onrender.com";
+export const BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.DEV ? "http://localhost:5000" : "https://invoiceai-lzko.onrender.com");
 
 export const API_ROUTES = {
   AUTH: {

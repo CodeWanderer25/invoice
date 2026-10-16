@@ -75,44 +75,48 @@ useEffect(() => {
   }
 
   const filteredInvoices = useMemo(() => {
-  return invoices.filter(invoice => 
-    (statusFilter === 'All' || invoice.status === statusFilter) &&
-    (
-      invoice.invoiceNumber.toLowerCase().includes(search.toLowerCase()) ||
-      invoice.billTo.clientName.toLowerCase().includes(search.toLowerCase())
-    )
-  );
-}, [invoices, search, statusFilter]);
+    const query = search.toLowerCase();
+    return invoices.filter(invoice => {
+      const matchesStatus =
+        statusFilter === 'All' ||
+        (invoice.status || "").toLowerCase() === statusFilter.toLowerCase();
+      const matchesNumber = (invoice.invoiceNumber || "").toLowerCase().includes(query);
+      const matchesClient = (invoice.billTo?.clientName || "").toLowerCase().includes(query);
+      return matchesStatus && (matchesNumber || matchesClient);
+    });
+  }, [invoices, search, statusFilter]);
 
   const getStatusBadge = (status) => {
+    const norm = (status || "").toLowerCase();
     const styles = {
-      Paid: 'bg-green-100 text-green-800 border-green-200',
-      Pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      UnPaid: 'bg-red-100 text-red-800 border-red-200'
+      paid: 'bg-green-100 text-green-800 border-green-200',
+      pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      unpaid: 'bg-red-100 text-red-800 border-red-200'
     };
 
     const icons = {
-      Paid: <CheckCircle className="w-3 h-3" />,
-      Pending: <Clock className="w-3 h-3" />,
-      UnPaid: <AlertTriangle className="w-3 h-3" />
+      paid: <CheckCircle className="w-3 h-3" />,
+      pending: <Clock className="w-3 h-3" />,
+      unpaid: <AlertTriangle className="w-3 h-3" />
     };
 
     return (
-      <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border ${styles[status]}`}>
-        {icons[status]}
-        {status}
+      <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border ${styles[norm] || styles.unpaid}`}>
+        {icons[norm] || icons.unpaid}
+        {status || "UnPaid"}
       </span>
     );
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'USD'
-    }).format(amount);
+      currency: 'INR'
+    }).format(amount || 0);
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -121,10 +125,10 @@ useEffect(() => {
   };
 
   const stats = useMemo(() => {
-    const total = invoices.reduce((sum, inv) => sum + inv.totalAmount, 0);
-    const paid = invoices.filter(inv => inv.status === 'Paid').reduce((sum, inv) => sum + inv.totalAmount, 0);
-    const pending = invoices.filter(inv => inv.status === 'Pending').reduce((sum, inv) => sum + inv.totalAmount, 0);
-    const UnPaid = invoices.filter(inv => inv.status === 'UnPaid').reduce((sum, inv) => sum + inv.totalAmount, 0);
+    const total = invoices.reduce((sum, inv) => sum + (inv.total || 0), 0);
+    const paid = invoices.filter(inv => (inv.status || "").toLowerCase() === 'paid').reduce((sum, inv) => sum + (inv.total || 0), 0);
+    const pending = invoices.filter(inv => (inv.status || "").toLowerCase() === 'pending').reduce((sum, inv) => sum + (inv.total || 0), 0);
+    const UnPaid = invoices.filter(inv => (inv.status || "").toLowerCase() === 'unpaid').reduce((sum, inv) => sum + (inv.total || 0), 0);
     return { total, paid, pending, UnPaid };
   }, [invoices]);
 
@@ -156,7 +160,7 @@ useEffect(() => {
               <Plus className="w-4 h-4" />
               Create with AI
             </button>
-            <button onClick={() => navigate('/invoices/create')} className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors duration-200 shadow-md hover:shadow-lg flex items-center gap-2">
+            <button onClick={() => navigate('/invoices/new')} className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors duration-200 shadow-md hover:shadow-lg flex items-center gap-2">
               <Plus className="w-4 h-4" />
               Create Invoice
             </button>
@@ -218,7 +222,7 @@ useEffect(() => {
                 <p className="text-gray-600 mb-6">Try adjusting your search or filter to find what you're looking for.</p>
                 {
                   invoices.length === 0 && (
-                    <button onClick={() => navigate('/invoices/create')} className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors duration-200 inline-flex items-center gap-2">
+                    <button onClick={() => navigate('/invoices/new')} className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors duration-200 inline-flex items-center gap-2">
                       <Plus className="w-4 h-4" />
                       Create your first invoice
                     </button>
@@ -247,9 +251,9 @@ useEffect(() => {
                           <div className="text-sm text-gray-500">{formatDate(invoice.invoiceDate)}</div>
                         </td>
                         <td onClick={()=> navigate(`/invoices/${invoice._id}`)} className="px-6 py-4 cursor-pointer">
-                          <div className="font-medium text-gray-900">{invoice.billTo.clientName}</div>
+                          <div className="font-medium text-gray-900">{invoice.billTo?.clientName || "N/A"}</div>
                         </td>
-                        <td onClick={()=> navigate(`invoices/${invoice._id}`)} className="px-6 py-4 cursor-pointer">
+                        <td onClick={()=> navigate(`/invoices/${invoice._id}`)} className="px-6 py-4 cursor-pointer">
                           <div className="font-semibold text-gray-900">{formatCurrency(invoice.total)}</div>
                         </td>
                         <td onClick={()=> navigate(`/invoices/${invoice._id}`)} className="px-6 py-4 cursor-pointer">
